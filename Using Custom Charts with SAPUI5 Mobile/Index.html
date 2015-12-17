@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv='Content-Type' content='text/html;charset=UTF-8' />
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
+            id="sap-ui-bootstrap"
+            data-sap-ui-libs="sap.m"
+            data-sap-ui-theme="sap_bluecrystal">
+    </script>
+    <link href="css/ui5applicationiii3.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        .axis {
+            font: 10px sans-serif;
+        }
+
+            .axis path,
+            .axis line {
+                fill: none;
+                stroke: #000;
+                shape-rendering: crispEdges;
+            }
+    </style>
+    <script>
+        var oSplitApp = new sap.m.SplitApp("mySplitApp")
+          .addMasterPage(new sap.m.Page("master", {
+              title: "Master",
+              navButtonPress: function () {
+                  oSplitApp.backMaster();
+              },
+              content: [new sap.m.List({
+                  mode: "SingleSelectMaster",
+                  select: function (oEv) {
+                      if (oEv.getParameter("listItem").getId() == "listDetail2") {
+                          oSplitApp.toDetail("detail2");
+                      } else {
+                          oSplitApp.toDetail("detail1");
+                      }
+                  },
+                  items: [new sap.m.StandardListItem("listDetail2", {
+                      title: "To Detail 2"
+                  }), new sap.m.StandardListItem("listDetail", {
+                      title: "To Detail 1"
+                  })]
+              })]
+          }))
+         .addDetailPage(new sap.m.Page("detail1", {
+             title: "Detail 1"
+         }))
+         .addDetailPage(new sap.m.Page("detail2", {
+             title: "Detail 2",
+         })).placeAt("content");
+
+
+        $(document).ready(function () {
+            drawChart(jQuery.sap.byId("detail1")[0]);
+            drawChart(jQuery.sap.byId("detail2")[0]);
+        });
+
+
+        function drawChart(element) {
+            var margin = { top: 20, right: 20, bottom: 70, left: 40 },
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+            // Parse the date / time
+            var parseDate = d3.time.format("%Y-%m").parse;
+
+            var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+            var y = d3.scale.linear().range([height, 0]);
+
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+                .tickFormat(d3.time.format("%Y-%m"));
+
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                .ticks(10);
+
+            var svg =
+                d3
+                .select(element)
+                //.select("#detail1")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform",
+                      "translate(" + margin.left + "," + margin.top + ")");
+
+            var data = [
+                {
+                    date: "2013-01",
+                    value: "53"
+                },
+                 {
+                     date: "2013-02",
+                     value: "153"
+                 },
+            ];
+
+            data.forEach(function (d) {
+                d.date = parseDate(d.date);
+                d.value = +d.value;
+            });
+
+            x.domain(data.map(function (d) { return d.date; }));
+            y.domain([0, d3.max(data, function (d) { return d.value; })]);
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+              .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", "-.55em")
+                .attr("transform", "rotate(-90)");
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+              .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Value ($)");
+
+            svg.selectAll("bar")
+                .data(data)
+              .enter().append("rect")
+                .style("fill", "steelblue")
+                .attr("x", function (d) { return x(d.date); })
+                .attr("width", x.rangeBand())
+                .attr("y", function (d) { return y(d.value); })
+                .attr("height", function (d) { return height - y(d.value); });
+        }
+    </script>
+
+
+</head>
+<body class="sapUiBody" role="application">
+    <div id="content"></div>
+</body>
+
+
+</html>
